@@ -1,0 +1,117 @@
+Copyright (C) Chris Desjardins 2008 - code@chrisd.info
+
+The driver implements pulse width modulation (PWM) by pulsing the 
+gpio signals which are connected to the signaling wire of a standard 
+RC servo. The driver is somewhat incomplete, it will support upto 8 
+servos but I haven't mapped them all to GPIOs because the mapping 
+is totally arbitrary. Only 2 servos are needed for RC cars so I 
+only map 2 servos to gpios. To add more then just add the appropraite
+mapping code to the servodrive_write() function.
+
+Another thing to keep in mind is that this module uses udelay to
+implement PWM accurately, the worst case udelay is ~2 milliseconds.
+I have found imperically that a pulse width of 400microseconds will
+turn my futuba servo all the way in one direction and a pulse width
+of 2100microseconds will turn it all the way in the other direction.
+
+--------------------------------------------------------------------
+
+Compiling: This code is currently setup to cross compile on a host
+linux system with the arm-none-linux-gnueabi- gnu tools from 
+www.codesourcery.com. Furthermore it also assumes that you have
+the linux kernel source which compiles and runs on your beagle board.
+For this to work I have modified two kernel source files:
+In arch/arm/mach-omap2/mux.c add the following to the end of 
+omap34xx_pins:
+
+MUX_CFG_34XX("XXX_3430_GPIO_136", 0x164,
+               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+MUX_CFG_34XX("XXX_3430_GPIO_137", 0x166,
+               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+MUX_CFG_34XX("XXX_3430_GPIO_138", 0x168,
+               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+MUX_CFG_34XX("XXX_3430_GPIO_139", 0x16a,
+               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+MUX_CFG_34XX("XXX_3430_GPIO_140", 0x16c,
+               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+MUX_CFG_34XX("XXX_3430_GPIO_141", 0x16e,
+               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+MUX_CFG_34XX("XXX_3430_GPIO_142", 0x170,
+               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
+MUX_CFG_34XX("XXX_3430_GPIO_143", 0x172,
+               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT) 
+
+Then in include/asm-arm/arch-omap/mux.h at the very end of
+omap34xx_index add:
+
+    XXXX_3430_GPIO_136, 
+    XXXX_3430_GPIO_137, 
+    XXXX_3430_GPIO_138, 
+    XXXX_3430_GPIO_139, 
+    XXXX_3430_GPIO_140, 
+    XXXX_3430_GPIO_141, 
+    XXXX_3430_GPIO_142, 
+    XXXX_3430_GPIO_143, 
+
+Once you have added the above mods and successfully booted your
+modified kernel, then you are ready to compile this program:
+
+Just unzip/untar then issue the commands:
+cd servosource
+make
+
+When it is done the following programs should exist:
+servosource/host/servoui/servoui
+servosource/target/servoctrl/servoctrl
+servosource/target/servoctrldrv/servoctrldrv.ko
+
+--------------------------------------------------------------------
+
+Running: Copy the servoctrl and servoctrldrv.ko as well as mkservodev
+to your SD card and boot your beagle. When it comes up and you login
+start your wireless network, and then issue the following commands:
+./mkservodev 
+./servoctrl
+
+At this point your beagleboard should be ready to drive servos, next
+you need to start the host side program with the following command:
+./servoui /dev/input/js0 192.168.10.1
+
+where the /dev/input/js0 is the location of your joystick device 
+file, and 192.168.10.1 is the IP address assigned to your beagle
+board.
+
+--------------------------------------------------------------------
+
+Wiring: To drive two servos "out of the box" the following wiring is
+required.
+Servo A requires the following 3 pins, all of which are on the 
+expansion header:
+ * Pin 3 to servo signaling (usually white) - this is gpio 139.
+ * Pin 2 to servo power (usually red) - this is 5volt DC.
+ * Pin 27 to servo ground (usually black) - this is ground.
+
+Servo B requires the following 3 pins, also on the expansion header:
+ * Pin 7 to servo signaling (usually white) - this is gpio 137.
+ * Pin 2 to servo power (usually red) - this is 5volt DC.
+ * Pin 28 to servo power (usually black) - this is ground.
+
+See http://www.fatlion.com/sailplanes/servos.html for a good 
+illustration of servo wires. In general the rule is:
+ * gpio to servo signaling wire
+ * 5vdc to servo power wire
+ * ground to servo ground
+Any gpio on the expansion header will work, but if you use ones other
+than 139, and 137 then the servodrive_write() function will have to
+be updated to refelect the gpios in use.
+
+--------------------------------------------------------------------
+
+A note about voltages: From what I have read servos are supposed to
+have ~3volt control signals, beagle has 1.8volt gpios. For a while I
+was considering some way to up the voltage, but after I tried servos
+with 1.8volt control signals and I saw that they worked perfectly
+fine, I instantly forgot all such considerations. :)
+
+--------------------------------------------------------------------
+

@@ -1,0 +1,12 @@
+#!/bin/sh
+module="servoctrldrv"
+device="servoctrl"
+
+insmod -f ./$module.ko $param || exit 1
+
+rm -f /dev/${device}0
+
+major=`awk "\\$2==\"$module\" {print \\$1}" /proc/devices`
+
+mknod /dev/${device}0 c $major 0
+
