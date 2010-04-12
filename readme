@@ -55,6 +55,30 @@ omap34xx_index add:
 
 Once you have added the above mods and successfully booted your
 modified kernel, then you are ready to compile this program:
+ 
+
+Edit: As far as I can tell, default is for u-boot to set up the mux and the kernel does not modify it unless this is specified when building the kernel (make menuconfig). If this is true, the newest version of u-boot should give you these GPIO ready configured without any more ado: 
+
+
+Pin GPIO number  servoctrl name
+5   138          A*
+7   137          B
+9   136          C*
+11  135          D*
+12  158          E*
+13  134          F*
+14  162          G*
+15  133          E*
+16  161
+17  132
+18  159
+19  131
+20  156
+22  157
+23  183
+24  168
+
+I have since moved the A servo to GPIO 136 so this configuration is not necessary any more. All servos arked with a * are added since by me.
 
 Just unzip/untar then issue the commands:
 cd servosource

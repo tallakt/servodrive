@@ -19,6 +19,19 @@ MODULE_LICENSE("Dual BSD/GPL");
 #define SERVODRIVE_NAME             "servoctrldrv"
 #define SERVODRIVE_PERIOD           20000
 
+
+/* pin gpio no      servo name */
+/* 5   138          A */
+/* 7   137          B */
+/* 9   136          C */
+/* 11  135          D */
+/* 12  158          E */
+/* 13  134          F */
+/* 14  162          G */
+/* 15  133          E */
+
+int gpio_bases = {138, 137, 136, 135, 158, 134, 162, 133};
+
 int servodrive_open(struct inode *inode, struct file *filp);
 int servodrive_release(struct inode *inode, struct file *filp);
 ssize_t servodrive_read(struct file *filp, char *buf, size_t count, loff_t *f_pos);
@@ -51,7 +64,7 @@ static int servodrive_init_mux(int mux_start_index, int mux_end_index)
     int ret = 0;
     for (i = mux_start_index; i <= mux_end_index; i++)
     {
-        ret = omap_cfg_reg(i);
+        ret = omap_cfg_reg(gpio_bases[i]);
         if (ret != 0)
         {
             printk("<1>Servodrive: omap_cfg_reg failed\n");
@@ -66,7 +79,7 @@ static int servodrive_init_data(void)
     int i;
     for (i = 0; i < SERVOSOC_MAX_SERVOS; i++)
     {
-        gpio_direction_output(i + SERVODRIVE_GPIO_BASE, 0);
+        gpio_direction_output(gpio_bases[i]);
         g_ServoDrvList[i].m_nGpio   = -1;
         g_ServoDrvList[i].m_nDelay  = 0;
     }
@@ -78,7 +91,7 @@ static int servodrive_init(void)
     int ret;
     printk("<1>Starting servo drive %s %s\n", __DATE__, __TIME__);
 
-    ret = servodrive_init_mux(XXXX_3430_GPIO_136, XXXX_3430_GPIO_143);
+    ret = servodrive_init_mux(SERVOSOC_SERVO_A, SERVOSOC_SERVO_H);
     if (ret != 0)
     {
         return ret;
@@ -133,10 +146,28 @@ ssize_t servodrive_write(struct file *filp, const char *buf, size_t count, loff_
         switch (sServoList[nServoIndex].m_nServoNumber)
         {
         case SERVOSOC_SERVO_A:
-            g_ServoDrvList[nServoIndex].m_nGpio = 139;
+            g_ServoDrvList[nServoIndex].m_nGpio = gpio_bases[sServoList[nServoIndex].m_nServoNumber];
             break;
         case SERVOSOC_SERVO_B:
-            g_ServoDrvList[nServoIndex].m_nGpio = 137;
+            g_ServoDrvList[nServoIndex].m_nGpio = gpio_bases[sServoList[nServoIndex].m_nServoNumber];
+            break;
+        case SERVOSOC_SERVO_C:
+            g_ServoDrvList[nServoIndex].m_nGpio = gpio_bases[sServoList[nServoIndex].m_nServoNumber];
+            break;
+        case SERVOSOC_SERVO_D:
+            g_ServoDrvList[nServoIndex].m_nGpio = gpio_bases[sServoList[nServoIndex].m_nServoNumber];
+            break;
+        case SERVOSOC_SERVO_E:
+            g_ServoDrvList[nServoIndex].m_nGpio = gpio_bases[sServoList[nServoIndex].m_nServoNumber];
+            break;
+        case SERVOSOC_SERVO_F:
+            g_ServoDrvList[nServoIndex].m_nGpio = gpio_bases[sServoList[nServoIndex].m_nServoNumber];
+            break;
+        case SERVOSOC_SERVO_G:
+            g_ServoDrvList[nServoIndex].m_nGpio = gpio_bases[sServoList[nServoIndex].m_nServoNumber];
+            break;
+        case SERVOSOC_SERVO_H:
+            g_ServoDrvList[nServoIndex].m_nGpio = gpio_bases[sServoList[nServoIndex].m_nServoNumber];
             break;
         case SERVOSOC_SERVO_INVALID:
             g_ServoDrvList[nServoIndex].m_nGpio = -1;
