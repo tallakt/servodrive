@@ -1,3 +1,21 @@
+Some changes have been done on this project to keep the RC servo 
+controller part for the Beagleboard with the following modifications:
+
+* Allow the user to select different pins on the expansion header. 
+  Ideally you should not have to change the mux settings to perform
+  control. In any case I prefer to use the PWM assignable pins on
+  the header so that I might later run the servos using the 
+  controller built in PWM generator that uses less CPU time
+* Remove the dependency on the 'host'. Instead I am writing a simple
+  ruby based interface than may be controlled locally on the 
+  beagleboard
+
+Thanks to Chris Desjardins for the original implementation.
+
+Tallak
+
+
+--------------------------------------------------------------------
 Copyright (C) Chris Desjardins 2008 - code@chrisd.info
 
 The driver implements pulse width modulation (PWM) by pulsing the 
