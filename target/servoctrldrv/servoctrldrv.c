@@ -4,7 +4,9 @@
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
-#include "asm/arch/mux.h"
+#include <plat/mux.h>
+/*#include "/home/tallakt/OE/angstrom-dev/staging/beagleboard-angstrom-linux-gnueabi/kernel/arch/arm/mach-omap2/mux.h"*/
+/*#include "asm/arch/mux.h"*/
 #include <linux/gpio.h>
 #include <linux/timer.h>
 #include <linux/delay.h>
@@ -28,9 +30,9 @@ MODULE_LICENSE("Dual BSD/GPL");
 /* 12  158          E */
 /* 13  134          F */
 /* 14  162          G */
-/* 15  133          E */
+/* 15  133          H */
 
-int gpio_bases = {138, 137, 136, 135, 158, 134, 162, 133};
+int gpio_bases[] = {138, 137, 136, 135, 158, 134, 162, 133};
 
 int servodrive_open(struct inode *inode, struct file *filp);
 int servodrive_release(struct inode *inode, struct file *filp);
@@ -79,7 +81,7 @@ static int servodrive_init_data(void)
     int i;
     for (i = 0; i < SERVOSOC_MAX_SERVOS; i++)
     {
-        gpio_direction_output(gpio_bases[i]);
+        gpio_direction_output(gpio_bases[i], 0);
         g_ServoDrvList[i].m_nGpio   = -1;
         g_ServoDrvList[i].m_nDelay  = 0;
     }

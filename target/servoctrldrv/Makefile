@@ -4,7 +4,7 @@ PWD := $(shell pwd)
 
 all: servoctrldrv.c
 	echo $(PWD)
-	make CROSS_COMPILE=arm-none-linux-gnueabi- -C ~/source/linux-beagle-2.6 M=$(PWD) modules
+	make CROSS_COMPILE=arm-angstrom-linux-gnueabi- -C /home/tallakt/OE/angstrom-dev/staging/beagleboard-angstrom-linux-gnueabi/kernel M=$(PWD) modules
 
 clean:
 	-rm -rfd .s*
