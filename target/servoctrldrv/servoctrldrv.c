@@ -1,12 +1,12 @@
 /*
  * Copyright (C) Chris Desjardins 2008 - code@chrisd.info
  */
+// http://www.mjmwired.net/kernel/Documentation/gpio.txt
+
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <plat/mux.h>
-/*#include "/home/tallakt/OE/angstrom-dev/staging/beagleboard-angstrom-linux-gnueabi/kernel/arch/arm/mach-omap2/mux.h"*/
-/*#include "asm/arch/mux.h"*/
 #include <linux/gpio.h>
 #include <linux/timer.h>
 #include <linux/delay.h>
@@ -17,7 +17,6 @@
 
 MODULE_LICENSE("Dual BSD/GPL");
 
-#define SERVODRIVE_GPIO_BASE        136
 #define SERVODRIVE_NAME             "servoctrldrv"
 #define SERVODRIVE_PERIOD           20000
 
@@ -32,7 +31,7 @@ MODULE_LICENSE("Dual BSD/GPL");
 /* 14  162          G */
 /* 15  133          H */
 
-int gpio_bases[] = {138, 137, 136, 135, 158, 134, 162, 133};
+int gpio_bases[] =   {  138,   137,   136,   135,   158,   134,   162,   133};
 
 int servodrive_open(struct inode *inode, struct file *filp);
 int servodrive_release(struct inode *inode, struct file *filp);
@@ -64,15 +63,15 @@ static int servodrive_init_mux(int mux_start_index, int mux_end_index)
 {
     int i;
     int ret = 0;
-    for (i = mux_start_index; i <= mux_end_index; i++)
-    {
-        ret = omap_cfg_reg(gpio_bases[i]);
-        if (ret != 0)
-        {
-            printk("<1>Servodrive: omap_cfg_reg failed\n");
-            break;
-        }
-    }
+    //for (i = mux_start_index; i <= mux_end_index; i++)
+    //{
+        //ret = omap_cfg_reg(gpio_bases[i]);
+        //if (ret != 0)
+        //{
+            //printk("<1>Servodrive: omap_cfg_reg failed\n");
+            //break;
+        //}
+    //}
     return ret;
 }
 
@@ -81,9 +80,19 @@ static int servodrive_init_data(void)
     int i;
     for (i = 0; i < SERVOSOC_MAX_SERVOS; i++)
     {
+        if (gpio_request(gpio_bases[i], "SERVODRIVE")) {
+            printk("<1>Servodrive: gpio_request failed for: %i\n", gpio_bases[i]);
+        }
+
         gpio_direction_output(gpio_bases[i], 0);
         g_ServoDrvList[i].m_nGpio   = -1;
         g_ServoDrvList[i].m_nDelay  = 0;
+    }
+    for (i = 0; i < SERVOSOC_MAX_SERVOS; i++)
+    {
+        gpio_direction_output(gpio_bases[i], 0);
+        g_ServoDrvList[i].m_nGpio   = gpio_bases[i];
+        g_ServoDrvList[i].m_nDelay  = 1500;
     }
     return 0;
 }
@@ -148,28 +157,15 @@ ssize_t servodrive_write(struct file *filp, const char *buf, size_t count, loff_
         switch (sServoList[nServoIndex].m_nServoNumber)
         {
         case SERVOSOC_SERVO_A:
-            g_ServoDrvList[nServoIndex].m_nGpio = gpio_bases[sServoList[nServoIndex].m_nServoNumber];
-            break;
         case SERVOSOC_SERVO_B:
-            g_ServoDrvList[nServoIndex].m_nGpio = gpio_bases[sServoList[nServoIndex].m_nServoNumber];
-            break;
         case SERVOSOC_SERVO_C:
-            g_ServoDrvList[nServoIndex].m_nGpio = gpio_bases[sServoList[nServoIndex].m_nServoNumber];
-            break;
         case SERVOSOC_SERVO_D:
-            g_ServoDrvList[nServoIndex].m_nGpio = gpio_bases[sServoList[nServoIndex].m_nServoNumber];
-            break;
         case SERVOSOC_SERVO_E:
-            g_ServoDrvList[nServoIndex].m_nGpio = gpio_bases[sServoList[nServoIndex].m_nServoNumber];
-            break;
         case SERVOSOC_SERVO_F:
-            g_ServoDrvList[nServoIndex].m_nGpio = gpio_bases[sServoList[nServoIndex].m_nServoNumber];
-            break;
         case SERVOSOC_SERVO_G:
-            g_ServoDrvList[nServoIndex].m_nGpio = gpio_bases[sServoList[nServoIndex].m_nServoNumber];
-            break;
         case SERVOSOC_SERVO_H:
             g_ServoDrvList[nServoIndex].m_nGpio = gpio_bases[sServoList[nServoIndex].m_nServoNumber];
+            g_ServoDrvList[nServoIndex].m_nDelay = sServoList[nServoIndex].m_nJoyValue;
             break;
         case SERVOSOC_SERVO_INVALID:
             g_ServoDrvList[nServoIndex].m_nGpio = -1;
@@ -178,10 +174,6 @@ ssize_t servodrive_write(struct file *filp, const char *buf, size_t count, loff_
             printk("<1> I dont even have this line hooked up to hardware, give me a break!\n");
             break;
         }
-        if (g_ServoDrvList[nServoIndex].m_nGpio != -1)
-        {
-            g_ServoDrvList[nServoIndex].m_nDelay = sServoList[nServoIndex].m_nJoyValue;
-        }
     }
     *f_pos += count;
     return count;
@@ -189,8 +181,12 @@ ssize_t servodrive_write(struct file *filp, const char *buf, size_t count, loff_
 
 int servodrive_release(struct inode *inode, struct file *filp)
 {
+    int i;
     g_nServoDrvOpen = 0;
     del_timer_sync(&g_tlServoDrvPwm);
+    for (i = 0; i < SERVOSOC_MAX_SERVOS; i++) {
+        gpio_free(gpio_bases[i]);
+    }
     return 0;
 }
 
