@@ -70,12 +70,11 @@ Once you have done this, you should update the Makefile to reflect the
 path of your linux kernel source, then add the arm-none-... tools to 
 your path. Then unzip/untar then issue the commands:
 
-  cd servosource/target/servoctrldrv
   make
 
-When it is done the following programs should exist:
+When it is done the following program should exist:
 
-  servosource/target/servoctrldrv/servodriver.ko
+  servodriver.ko
 
 --------------------------------------------------------------------
 
