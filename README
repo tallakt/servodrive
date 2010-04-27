@@ -1,36 +1,57 @@
-Some changes have been done on this project to keep the RC servo 
-controller part for the Beagleboard with the following modifications:
-
-* Allow the user to select different pins on the expansion header. 
-  Ideally you should not have to change the mux settings to perform
-  control. In any case I prefer to use the PWM assignable pins on
-  the header so that I might later run the servos using the 
-  controller built in PWM generator that uses less CPU time
-* Remove the dependency on the 'host'. Instead I am writing a simple
-  ruby based interface than may be controlled locally on the 
-  beagleboard
-
-Thanks to Chris Desjardins for the original implementation.
-
-Tallak
-
-
 --------------------------------------------------------------------
 Copyright (C) Chris Desjardins 2008 - code@chrisd.info
+Copyright (C) Tallak Tveide 2010 - tallak@tveide.net
+
+This driver is written for the Beagleboard (but the concepts should
+apply easily to other platforms by changing the pin to gpio mapping).
 
 The driver implements pulse width modulation (PWM) by pulsing the 
 gpio signals which are connected to the signaling wire of a standard 
-RC servo. The driver is somewhat incomplete, it will support upto 8 
-servos but I haven't mapped them all to GPIOs because the mapping 
-is totally arbitrary. Only 2 servos are needed for RC cars so I 
-only map 2 servos to gpios. To add more then just add the appropraite
-mapping code to the servodrive_write() function.
+RC servo. Any pin on the expansion header may be used to generate the
+PWM signal provided the MUX has been properly configured in u-boot
+or linux kernel. If you do not want to change the MUX configuration,
+as a starting point you can try the following pins which are confirmed
+to work with standard angstrom demo image and u-boot:
 
-Another thing to keep in mind is that this module uses udelay to
-implement PWM accurately, the worst case udelay is ~2 milliseconds.
-I have found imperically that a pulse width of 400microseconds will
-turn my futuba servo all the way in one direction and a pulse width
-of 2100microseconds will turn it all the way in the other direction.
+  3 - 5 - 7 - 9 - 11 - 12 - ... - 23 - 24
+
+The driver has been tested with Futaba and Modelcraft servos that are 
+supplied power from the +5V and GND pins on the expansion header, 
+and the signal provided directly from the 1.8V GPIO pin with no extra
+voltage conversion. Other servos might such additional electronics.
+
+The default pulse widths are:
+
+  -100%    1100 ms
+     0%    1500 ms
+   100%    1900 ms
+
+In addition the servos may be turned completely off (no pulse).
+
+
+The driver uses udelay() which does active waiting, so expect around 
+10% of your CPU time to be used as long as any servos are running. When
+all servos are off, there is little overhead.
+
+Controlling the driver: The driver is controlled by writing to the device 
+file called /dev/servodrive0. Some examples are shown below:
+
+  $ echo 3:100  > /dev/servodrive0
+  $ echo 5:-100 > /dev/servodrive0
+  $ echo 7:off  > /dev/servodrive0
+  $ echo 9:50   > /dev/servodrive0
+
+Running the above three commands will leave the servo connected to 
+expansion header pin 3 at 100% clockwise, 5 will be at 100% counter-
+clockwise while pin 7 wil reveive no controlling pulse. Pin 9 will be at 
+50% rotation clockwise. If you later run the command:
+
+  $ echo 3:off  > /dev/servodrive0
+
+the servo at pin 3 will not move, but if a force pushes the servo 
+away from the 100% position, it will not react by moving it back.
+No power is used and there will be no jitter whatsoever.
+
 
 --------------------------------------------------------------------
 
@@ -38,95 +59,36 @@ Compiling: This code is currently setup to cross compile on a host
 linux system with the arm-none-linux-gnueabi- gnu tools from 
 www.codesourcery.com. Furthermore it also assumes that you have
 the linux kernel source which compiles and runs on your beagle board.
-For this to work I have modified two kernel source files:
-In arch/arm/mach-omap2/mux.c add the following to the end of 
-omap34xx_pins:
 
-MUX_CFG_34XX("XXX_3430_GPIO_136", 0x164,
-               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-MUX_CFG_34XX("XXX_3430_GPIO_137", 0x166,
-               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-MUX_CFG_34XX("XXX_3430_GPIO_138", 0x168,
-               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-MUX_CFG_34XX("XXX_3430_GPIO_139", 0x16a,
-               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-MUX_CFG_34XX("XXX_3430_GPIO_140", 0x16c,
-               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-MUX_CFG_34XX("XXX_3430_GPIO_141", 0x16e,
-               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-MUX_CFG_34XX("XXX_3430_GPIO_142", 0x170,
-               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT)
-MUX_CFG_34XX("XXX_3430_GPIO_143", 0x172,
-               OMAP34XX_MUX_MODE4 | OMAP34XX_PIN_OUTPUT) 
+Note: These tools are automatically added when compiling the angstrom
+kernel using the bitbake tool chain. To compile on your machine, first
+compile the kernel as described on the elinux.org wiki:
 
-Then in include/asm-arm/arch-omap/mux.h at the very end of
-omap34xx_index add:
+  bitbake virtual/kernel
 
-    XXXX_3430_GPIO_136, 
-    XXXX_3430_GPIO_137, 
-    XXXX_3430_GPIO_138, 
-    XXXX_3430_GPIO_139, 
-    XXXX_3430_GPIO_140, 
-    XXXX_3430_GPIO_141, 
-    XXXX_3430_GPIO_142, 
-    XXXX_3430_GPIO_143, 
+Once you have done this, you should update the Makefile to reflect the 
+path of your linux kernel source, then add the arm-none-... tools to 
+your path. Then unzip/untar then issue the commands:
 
-Once you have added the above mods and successfully booted your
-modified kernel, then you are ready to compile this program:
- 
-
-Edit: As far as I can tell, default is for u-boot to set up the mux and the kernel does not modify it unless this is specified when building the kernel (make menuconfig). If this is true, the newest version of u-boot should give you these GPIO ready configured without any more ado: 
-
-
-Pin GPIO number  servoctrl name
-5   138          A*
-7   137          B
-9   136          C*
-11  135          D*
-12  158          E*
-13  134          F*
-14  162          G*
-15  133          E*
-16  161
-17  132
-18  159
-19  131
-20  156
-22  157
-23  183
-24  168
-
-I have since moved the A servo to GPIO 136 so this configuration is not necessary any more. All servos arked with a * are added since by me.
-
-Just unzip/untar then issue the commands:
-cd servosource
-make
+  cd servosource/target/servoctrldrv
+  make
 
 When it is done the following programs should exist:
-servosource/host/servoui/servoui
-servosource/target/servoctrl/servoctrl
-servosource/target/servoctrldrv/servoctrldrv.ko
+
+  servosource/target/servoctrldrv/servodriver.ko
 
 --------------------------------------------------------------------
 
-Running: Copy the servoctrl and servoctrldrv.ko as well as mkservodev
+Running: Copy the servodrive.ko as well as mkservodev
 to your SD card and boot your beagle. When it comes up and you login
 start your wireless network, and then issue the following commands:
 ./mkservodev 
-./servoctrl
-
-At this point your beagleboard should be ready to drive servos, next
-you need to start the host side program with the following command:
-./servoui /dev/input/js0 192.168.10.1
-
-where the /dev/input/js0 is the location of your joystick device 
-file, and 192.168.10.1 is the IP address assigned to your beagle
-board.
 
 --------------------------------------------------------------------
 
 Wiring: To drive two servos "out of the box" the following wiring is
-required.
+required (for the example, pins 3 and 7 are used).
+
 Servo A requires the following 3 pins, all of which are on the 
 expansion header:
  * Pin 3 to servo signaling (usually white) - this is gpio 139.
@@ -140,12 +102,11 @@ Servo B requires the following 3 pins, also on the expansion header:
 
 See http://www.fatlion.com/sailplanes/servos.html for a good 
 illustration of servo wires. In general the rule is:
+
  * gpio to servo signaling wire
  * 5vdc to servo power wire
  * ground to servo ground
-Any gpio on the expansion header will work, but if you use ones other
-than 139, and 137 then the servodrive_write() function will have to
-be updated to refelect the gpios in use.
+
 
 --------------------------------------------------------------------
 

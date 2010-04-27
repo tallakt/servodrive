@@ -1,8 +1,8 @@
-obj-m := servoctrldrv.o
+obj-m := servodrive.o
 
 PWD := $(shell pwd)
 
-all: servoctrldrv.c
+all: servodrive.c
 	echo $(PWD)
 	make CROSS_COMPILE=arm-angstrom-linux-gnueabi- -C /home/tallakt/OE/angstrom-dev/staging/beagleboard-angstrom-linux-gnueabi/kernel M=$(PWD) modules
 
@@ -17,4 +17,4 @@ clean:
 
 copy:
 	sudo cp mkservodev /media/$(DISK)/home/root
-	sudo cp servoctrldrv.ko /media/$(DISK)/home/root
+	sudo cp servodrive.ko /media/$(DISK)/home/root

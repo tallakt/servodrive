@@ -1,6 +1,6 @@
 #!/bin/sh
-module="servoctrldrv"
-device="servoctrl"
+module="servodrive"
+device="servodrive"
 
 insmod -f ./$module.ko $param || exit 1
 
