@@ -55,26 +55,17 @@ No power is used and there will be no jitter whatsoever.
 
 --------------------------------------------------------------------
 
-Compiling: This code is currently setup to cross compile on a host
-linux system with the arm-none-linux-gnueabi- gnu tools from 
-www.codesourcery.com. Furthermore it also assumes that you have
-the linux kernel source which compiles and runs on your beagle board.
+Compiling: Copy the servodrive folder into the openembedded/recipes/
+folder. Then run the following command:
 
-Note: These tools are automatically added when compiling the angstrom
-kernel using the bitbake tool chain. To compile on your machine, first
-compile the kernel as described on the elinux.org wiki:
+  bitbake servodrive
 
-  bitbake virtual/kernel
+You should compile a file called servodrive.ko that you may copy to
+the beagleboard and then run the mkservonode script to create the 
+/dev/servodrive0 file.
 
-Once you have done this, you should update the Makefile to reflect the 
-path of your linux kernel source, then add the arm-none-... tools to 
-your path. Then unzip/untar then issue the commands:
-
-  make
-
-When it is done the following program should exist:
-
-  servodriver.ko
+For more information about Angstrom, bitbake and OpenEmbedded, check 
+out http://elinux.org/BeagleBoard#OpenEmbedded
 
 --------------------------------------------------------------------
 
