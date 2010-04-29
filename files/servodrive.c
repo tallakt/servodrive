@@ -17,6 +17,9 @@ MODULE_LICENSE("Dual BSD/GPL");
 #define SERVODRIVE_NAME             "servodrive"
 #define SERVODRIVE_PERIOD           20000
 
+int id = 0;
+static struct class *servodrive_class;
+
 #define FIRST_GPIO_PIN 3
 #define LAST_GPIO_PIN 24
 #define GPIO_TOTAL_COUNT (LAST_GPIO_PIN - FIRST_GPIO_PIN + 1)
@@ -110,6 +113,8 @@ static int servodrive_init(void) {
         return g_nServoDrvMajor;
     }
     printk("<1>major=%i\n", g_nServoDrvMajor);
+    servodrive_class = class_create(THIS_MODULE, SERVODRIVE_NAME);
+    device_create(servodrive_class, NULL, MKDEV(g_nServoDrvMajor, id), NULL, SERVODRIVE_NAME "%d", id);
 
     g_nServoDrvOpen = 1;
     init_timer(&g_tlServoDrvPwm);
@@ -317,6 +322,7 @@ static void servodrive_exit(void) {
     }
     printk("<1>Exiting servodrive\n");
     unregister_chrdev(g_nServoDrvMajor, SERVODRIVE_NAME);
+    device_destroy(servodrive_class, MKDEV(g_nServoDrvMajor, id));
 }
 
 module_init(servodrive_init);
