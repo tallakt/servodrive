@@ -36,17 +36,17 @@ all servos are off, there is little overhead.
 Controlling the driver: The driver is controlled by writing to the device 
 file called /dev/servodrive0. Some examples are shown below:
 
-  $ echo 3:100  > /dev/servodrive0
-  $ echo 5:-100 > /dev/servodrive0
-  $ echo 7:off  > /dev/servodrive0
-  $ echo 9:50   > /dev/servodrive0
+  echo 3:100  > /dev/servodrive0
+  echo 5:-100 > /dev/servodrive0
+  echo 7:off  > /dev/servodrive0
+  echo 9:50   > /dev/servodrive0
 
 Running the above three commands will leave the servo connected to 
 expansion header pin 3 at 100% clockwise, 5 will be at 100% counter-
 clockwise while pin 7 wil reveive no controlling pulse. Pin 9 will be at 
 50% rotation clockwise. If you later run the command:
 
-  $ echo 3:off  > /dev/servodrive0
+  echo 3:off  > /dev/servodrive0
 
 the servo at pin 3 will not move, but if a force pushes the servo 
 away from the 100% position, it will not react by moving it back.
@@ -60,9 +60,17 @@ folder. Then run the following command:
 
   bitbake servodrive
 
-You should compile a file called servodrive.ko that you may copy to
-the beagleboard and then run the mkservonode script to create the 
-/dev/servodrive0 file.
+After bitbake completes, you should find a file called 
+servodrive_X.X_-rXX.X_beaglebaord.ipk. Copy this file across to your
+Beagleboard and run the command
+
+  opkg install servodrive_X.X_-rXX.X.ipk
+
+To load the module, run the command
+
+  modprobe servodrive
+
+You should now see a file called /dev/servodrive0
 
 For more information about Angstrom, bitbake and OpenEmbedded, check 
 out http://elinux.org/BeagleBoard#OpenEmbedded
