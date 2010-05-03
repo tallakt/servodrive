@@ -77,13 +77,6 @@ out http://elinux.org/BeagleBoard#OpenEmbedded
 
 --------------------------------------------------------------------
 
-Running: Copy the servodrive.ko as well as mkservodev
-to your SD card and boot your beagle. When it comes up and you login
-start your wireless network, and then issue the following commands:
-./mkservodev 
-
---------------------------------------------------------------------
-
 Wiring: To drive two servos "out of the box" the following wiring is
 required (for the example, pins 3 and 7 are used).
 

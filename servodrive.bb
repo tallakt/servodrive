@@ -10,7 +10,6 @@ PR = "r0"
 SRC_URI = " \
   file://servodrive.c \
   file://Makefile \
-  file://mkservodev \
   "
 
 S = "${WORKDIR}"
