@@ -55,6 +55,18 @@ No power is used and there will be no jitter whatsoever.
 
 --------------------------------------------------------------------
 
+History: This code was originally found in Chris Desjardins project 
+that included joystick control on a Windows host and a client server
+architecture. In April 2010 I (Tallak Tveide) repackaged the code 
+so that it would run on any expansion header pins and compile with 
+bitbake, and the file interface was modified. The client-server parts
+were also removed making this a servo driver only project that should
+be reusable for other projects.
+ 
+See: http://chrisd.info/beagleRC/
+
+--------------------------------------------------------------------
+
 Compiling: Copy the servodrive folder into the openembedded/recipes/
 folder. Then run the following command:
 
