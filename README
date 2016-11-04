@@ -1,6 +1,21 @@
+# Servodrive
+
+## Note 2016
+
+You are probably better off not using this library and
+rather do something based on the PRU in the beaglebone. Althesame
+this project may contain some useful code examples for other uses.
+
+Tallak
+
+## Old readme
+
+```
 --------------------------------------------------------------------
 Copyright (C) Chris Desjardins 2008 - code@chrisd.info
 Copyright (C) Tallak Tveide 2010 - tallak@tveide.net
+
+
 
 This driver is written for the Beagleboard (but the concepts should
 apply easily to other platforms by changing the pin to gpio mapping).
@@ -120,4 +135,4 @@ with 1.8volt control signals and I saw that they worked perfectly
 fine, I instantly forgot all such considerations. :)
 
 --------------------------------------------------------------------
-
+```
